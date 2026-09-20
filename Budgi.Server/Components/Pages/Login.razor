@@ -1,0 +1,103 @@
+﻿@inject AuthenticationStateProvider AuthStateProvider
+@page "/login"
+@layout EmptyLayout
+
+@using Budgi.Server.Components.Account.Shared
+@using Budgi.Server.Components.Utils
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Budgi.Server.Data
+
+@inject SignInManager<ApplicationUser> SignInManager
+@inject ILogger<Login> Logger
+@inject IdentityRedirectManager RedirectManager
+
+<PageTitle>Log in</PageTitle>
+
+<div class="p-5">
+    <h1>Log in</h1>
+    <div class="row">
+        <div class="col-lg-6">
+            <section>
+                <StatusMessage Message="@_errorMessage"/>
+                <EditForm Model="Input" method="post" OnValidSubmit="@LoginUser" FormName="login">
+                    <DataAnnotationsValidator/>
+                    <hr/>
+                    <div class="form-floating mb-3">
+                        <InputText @bind-Value="Input!.Email" id="Input.Email" class="form-control"
+                                   autocomplete="username webauthn" aria-required="true"
+                                   placeholder="name@example.com"/>
+                        <label for="Input.Email" class="form-label">Email</label>
+                        <ValidationMessage For="() => Input.Email" class="text-danger"/>
+                    </div>
+                    <div class="form-floating mb-3">
+                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control"
+                                   autocomplete="current-password" aria-required="true" placeholder="password"/>
+                        <label for="Input.Password" class="form-label">Password</label>
+                        <ValidationMessage For="() => Input.Password" class="text-danger"/>
+                    </div>
+                    <div class="checkbox mb-3">
+                        <label class="form-label">
+                            <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
+                            Remember me
+                        </label>
+                    </div>
+                    <div>
+                        <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+                    </div>
+                    <hr/>
+                    <div>
+                        <p>
+                            <a href="/register">Register as a new user</a>
+                        </p>
+                    </div>
+                </EditForm>
+            </section>
+        </div>
+    </div>
+</div>
+
+@code {
+    private string? _errorMessage;
+
+    [SupplyParameterFromForm]
+    private InputModel? Input{ get; set; }
+
+    protected override async Task OnInitializedAsync() {
+        var authState = await AuthStateProvider.GetAuthenticationStateAsync();
+        var user = authState.User;
+
+        // If the user already has a valid login cookie (from "Remember me" or an active session)
+        if (user.Identity is not null && user.Identity.IsAuthenticated) {
+            RedirectManager.RedirectTo("/home");
+            return;
+        }
+        
+        Input ??= new();
+    }
+
+    private async Task LoginUser() {
+        var result = await SignInManager.PasswordSignInAsync(Input!.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+
+        if (result.Succeeded) {
+            Logger.LogInformation("User logged in.");
+            RedirectManager.RedirectTo("/");
+        }
+        else {
+            _errorMessage = "Error: Invalid login attempt.";
+        }
+    }
+
+    private sealed class InputModel {
+        [Required]
+        [EmailAddress]
+        public string Email { get; set; } = "";
+
+        [Required]
+        [DataType(DataType.Password)]
+        public string Password { get; set; } = "";
+
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
+    }
+}

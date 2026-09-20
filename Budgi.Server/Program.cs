@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Budgi.Server.Components;
 using Budgi.Server.Components.Account;
+using Budgi.Server.Components.Utils;
 using Budgi.Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);

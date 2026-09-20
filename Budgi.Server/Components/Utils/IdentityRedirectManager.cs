@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Identity;
 using Budgi.Server.Data;
 
-namespace Budgi.Server.Components.Account;
+namespace Budgi.Server.Components.Utils;
 
 internal sealed class IdentityRedirectManager(NavigationManager navigationManager) {
     public const string StatusCookieName = "Identity.StatusMessage";
