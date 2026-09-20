@@ -2,9 +2,9 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Budgi.Server.Components;
-using Budgi.Server.Components.Account;
 using Budgi.Server.Components.Utils;
 using Budgi.Server.Data;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +14,6 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddScoped<IdentityRedirectManager>();
-builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
 
 builder.Services.AddAuthentication(options => {
         options.DefaultScheme = IdentityConstants.ApplicationScheme;
@@ -35,7 +34,6 @@ builder.Services.AddIdentityCore<ApplicationUser>(options => {
     .AddSignInManager()
     .AddDefaultTokenProviders();
 
-builder.Services.AddSingleton<IEmailSender<ApplicationUser>, IdentityNoOpEmailSender>();
 
 var app = builder.Build();
 
@@ -58,6 +56,12 @@ app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
 // Add additional endpoints required by the Identity /Account Razor components.
-app.MapAdditionalIdentityEndpoints();
+app.MapPost("/Account/Logout", async (
+    SignInManager<ApplicationUser> signInManager,
+    [FromForm] string? returnUrl) =>
+{
+    await signInManager.SignOutAsync();
+    return TypedResults.LocalRedirect($"~/{returnUrl ?? ""}");
+});
 
 app.Run();

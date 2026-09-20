@@ -1,12 +1,12 @@
 ﻿@page "/register"
 @layout EmptyLayout
 
-@using Budgi.Server.Components.Account.Shared
 @using Budgi.Server.Components.Utils
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Identity
 @using Budgi.Server.Data
 
+@inject SignInManager<ApplicationUser> SignInManager
 @inject AuthenticationStateProvider AuthStateProvider
 @inject UserManager<ApplicationUser> UserManager
 @inject ILogger<Register> Logger
@@ -17,7 +17,9 @@
 <div class="p-5">
     <h1>Register</h1>
     <hr/>
-    <StatusMessage Message="@_errorMessage"/>
+    @if (!string.IsNullOrEmpty(_errorMessage)) {
+        <div class="alert alert-danger">@_errorMessage</div>
+    }
     <EditForm Model="Input" method="post" OnValidSubmit="RegisterUser" FormName="register">
         <DataAnnotationsValidator/>
         <div class="form-floating mb-3">
@@ -35,7 +37,13 @@
             <label for="Input.ConfirmPassword">Confirm Password</label>
             <ValidationMessage For="() => Input.ConfirmPassword" class="text-danger"/>
         </div>
-        <button type="submit" class="w-100 btn btn-lg btn-primary">Register</button>
+        <div class="checkbox mb-3">
+            <label class="form-label">
+                <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
+                Remember me
+            </label>
+        </div>
+        <button type="submit" class="w-100 btn btn-lg btn-primary">Register and Log In</button>
         <hr/>
         <NavLink href="login">I already have an account</NavLink>
     </EditForm>
@@ -66,14 +74,21 @@
             Email = Input.Email
         };
 
-        var result = await UserManager.CreateAsync(user, Input.Password);
+        var registrationResult = await UserManager.CreateAsync(user, Input.Password);
 
-        if (result.Succeeded) {
+        if (registrationResult.Succeeded) {
             Logger.LogInformation("User created a new account with password.");
-            RedirectManager.RedirectTo("/registration-success");
+            var signInResult = await SignInManager.PasswordSignInAsync(Input!.Email, Input.Password, Input.RememberMe, lockoutOnFailure: false);
+            if (signInResult.Succeeded) {
+                Logger.LogInformation("User logged in.");
+                RedirectManager.RedirectTo("/");
+            }
+            else {
+                _errorMessage = "Account was registered, but failed to log in.";
+            }
         }
         else {
-            _errorMessage = result.Errors.First().Description;
+            _errorMessage = registrationResult.Errors.First().Description;
         }
     }
 
@@ -93,5 +108,8 @@
         [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "The password and confirmation password do not match.")]
         public string ConfirmPassword { get; set; } = "";
+        
+        [Display(Name = "Remember me?")]
+        public bool RememberMe { get; set; }
     }
 }
