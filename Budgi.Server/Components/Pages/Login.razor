@@ -11,51 +11,38 @@
 @inject SignInManager<ApplicationUser> SignInManager
 @inject ILogger<Login> Logger
 @inject IdentityRedirectManager RedirectManager
-
 <PageTitle>Log in</PageTitle>
+
 
 <div class="p-5">
     <h1>Log in</h1>
-    <div class="row">
-        <div class="col-lg-6">
-            <section>
-                <StatusMessage Message="@_errorMessage"/>
-                <EditForm Model="Input" method="post" OnValidSubmit="@LoginUser" FormName="login">
-                    <DataAnnotationsValidator/>
-                    <hr/>
-                    <div class="form-floating mb-3">
-                        <InputText @bind-Value="Input!.Email" id="Input.Email" class="form-control"
-                                   autocomplete="username webauthn" aria-required="true"
-                                   placeholder="name@example.com"/>
-                        <label for="Input.Email" class="form-label">Email</label>
-                        <ValidationMessage For="() => Input.Email" class="text-danger"/>
-                    </div>
-                    <div class="form-floating mb-3">
-                        <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control"
-                                   autocomplete="current-password" aria-required="true" placeholder="password"/>
-                        <label for="Input.Password" class="form-label">Password</label>
-                        <ValidationMessage For="() => Input.Password" class="text-danger"/>
-                    </div>
-                    <div class="checkbox mb-3">
-                        <label class="form-label">
-                            <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
-                            Remember me
-                        </label>
-                    </div>
-                    <div>
-                        <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
-                    </div>
-                    <hr/>
-                    <div>
-                        <p>
-                            <a href="/register">Register as a new user</a>
-                        </p>
-                    </div>
-                </EditForm>
-            </section>
+    <hr/>
+    <StatusMessage Message="@_errorMessage"/>
+    <EditForm Model="Input" method="post" OnValidSubmit="@LoginUser" FormName="login">
+        <DataAnnotationsValidator/>
+        <div class="form-floating mb-3">
+            <InputText @bind-Value="Input!.Email" id="Input.Email" class="form-control" autocomplete="username webauthn" aria-required="true" placeholder="name@example.com"/>
+            <label for="Input.Email" class="form-label">Email</label>
+            <ValidationMessage For="() => Input.Email" class="text-danger"/>
         </div>
-    </div>
+        <div class="form-floating mb-3">
+            <InputText type="password" @bind-Value="Input.Password" id="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" placeholder="password"/>
+            <label for="Input.Password" class="form-label">Password</label>
+            <ValidationMessage For="() => Input.Password" class="text-danger"/>
+        </div>
+        <div class="checkbox mb-3">
+            <label class="form-label">
+                <InputCheckbox @bind-Value="Input.RememberMe" class="darker-border-checkbox form-check-input"/>
+                Remember me
+            </label>
+        </div>
+        <button type="submit" class="w-100 btn btn-lg btn-primary">Log in</button>
+        <hr/>
+        <NavLink href="register">Register as a new user</NavLink>
+    </EditForm>
 </div>
+
+
 
 @code {
     private string? _errorMessage;
